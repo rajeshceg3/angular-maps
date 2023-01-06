@@ -1,0 +1,11 @@
+.map {
+  position: relative; /* or absolute, depending on your layout */
+  width: 100%; /* or a fixed width, if desired */
+  height: 500px; /* or a fixed height, if desired */
+  overflow: hidden; /* hide any content that overflows the div */
+}
+
+.map canvas {
+  width: 100%; /* or a fixed width, if desired */
+  height: 100%; /* or a fixed height, if desired */
+}
