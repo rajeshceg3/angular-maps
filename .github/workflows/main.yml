@@ -1,0 +1,37 @@
+name: Angular CI
+
+on:
+  push:
+    branches: [ "main", "master" ] # Adjust if your main branch has a different name
+  pull_request:
+    branches: [ "main", "master" ] # Adjust if your main branch has a different name
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x] # Test on common LTS versions
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Lint Code
+      run: npm run lint --if-present # Use --if-present in case lint script is problematic or not configured
+
+    - name: Test Application
+      run: npm run test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
+
+    - name: Build Application
+      run: npm run build -- --configuration production
