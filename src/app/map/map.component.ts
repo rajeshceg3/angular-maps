@@ -58,6 +58,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderer.setSize(width, height);
     container.appendChild(this.renderer.domElement);
 
+    // Add an initial placeholder cube
+    const placeholderGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8); // Slightly smaller
+    const placeholderMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Blue
+    const placeholderCube = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+    placeholderCube.position.set(-1.5, 0, 0); // Position it to the side
+    this.scene.add(placeholderCube);
+
     this.animate();
   }
 
