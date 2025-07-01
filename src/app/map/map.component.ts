@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { MapInteractionService, MapCoordinates } from '../map-interaction.service';
 
 @Component({
   selector: 'app-map',
@@ -17,8 +18,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer();
   private animationFrameId: number;
   private httpSubscription: Subscription;
+  private mapClickSubscription: Subscription;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private mapInteractionService: MapInteractionService) { }
 
   ngOnInit(): void {
     // HTTP call can be started in ngOnInit
@@ -44,6 +46,22 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const cube = new THREE.Mesh(geometry, material);
         this.scene.add(cube);
+    });
+
+    this.mapClickSubscription = this.mapInteractionService.getCoordinates().subscribe(coords => {
+      if (coords) {
+        console.log('Received coordinates in MapComponent:', coords); // For debugging
+        const geometry = new THREE.SphereGeometry(0.2, 16, 16); // Smaller sphere
+        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color for new objects
+        const sphere = new THREE.Mesh(geometry, material);
+
+        // Simple mapping of lat/lng to x/y. Z can be 0 or a small fixed value.
+        // Adjust scaling/mapping as needed if objects are too far or too small.
+        sphere.position.set(coords.lng / 10, coords.lat / 10, 0); // Scaled down to fit typical scene
+
+        this.scene.add(sphere);
+        console.log('Added new sphere to scene at:', sphere.position); // For debugging
+      }
     });
   }
 
@@ -74,6 +92,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.httpSubscription) {
       this.httpSubscription.unsubscribe();
+    }
+    if (this.mapClickSubscription) {
+      this.mapClickSubscription.unsubscribe();
     }
     if (this.renderer) {
       // Dispose of renderer and its resources if needed, though Angular might remove the canvas
