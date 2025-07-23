@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import * as THREE from 'three';
-import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Subscription } from 'rxjs';
 import { MapInteractionService, MapCoordinates } from '../map-interaction.service';
+import { MockDataService } from '../mock-data.service';
 
 @Component({
   selector: 'app-map',
@@ -16,24 +16,21 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private scene: THREE.Scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer();
+  private controls: OrbitControls;
   private animationFrameId: number;
-  private httpSubscription: Subscription;
+  private dataSubscription: Subscription;
   private mapClickSubscription: Subscription;
 
-  constructor(private http: HttpClient, private mapInteractionService: MapInteractionService) { }
+  constructor(private mockDataService: MockDataService, private mapInteractionService: MapInteractionService) { }
 
   ngOnInit(): void {
-    // HTTP call can be started in ngOnInit
-    this.httpSubscription = this.http.get('/api/maps').pipe(
-      map((response: any) => response.data)
-    ).subscribe((mapsData: any) => {
-      // process the maps data here
-      if (mapsData && Array.isArray(mapsData)) {
-        mapsData.forEach((mapData: any) => {
+    this.dataSubscription = this.mockDataService.getMapsData().subscribe((mapsData: any) => {
+      if (mapsData && Array.isArray(mapsData.data)) {
+        mapsData.data.forEach((mapData: any) => {
           const geometry = new THREE.BoxGeometry(1, 1, 1);
-          const material = new THREE.MeshBasicMaterial({ color: mapData.color || 0x00ff00 }); // Default color if not provided
+          const material = new THREE.MeshBasicMaterial({ color: mapData.color || 0x00ff00 });
           const cube = new THREE.Mesh(geometry, material);
-          cube.position.set(mapData.x || 0, mapData.y || 0, mapData.z || 0); // Default position
+          cube.position.set(mapData.x || 0, mapData.y || 0, mapData.z || 0);
           this.scene.add(cube);
         });
       } else {
@@ -41,11 +38,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }, error => {
       console.error('Error fetching map data:', error);
-      // You could add some default cubes or error indicators to the scene here
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const cube = new THREE.Mesh(geometry, material);
-        this.scene.add(cube);
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const cube = new THREE.Mesh(geometry, material);
+      this.scene.add(cube);
     });
 
     this.mapClickSubscription = this.mapInteractionService.getCoordinates().subscribe(coords => {
@@ -76,6 +72,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderer.setSize(width, height);
     container.appendChild(this.renderer.domElement);
 
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.25;
+    this.controls.enableZoom = true;
+
     // Add an initial placeholder cube
     const placeholderGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8); // Slightly smaller
     const placeholderMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Blue
@@ -90,8 +91,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
-    if (this.httpSubscription) {
-      this.httpSubscription.unsubscribe();
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
     }
     if (this.mapClickSubscription) {
       this.mapClickSubscription.unsubscribe();
@@ -126,6 +127,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   animate(): void {
     this.animationFrameId = requestAnimationFrame(() => this.animate());
     if (this.camera && this.scene && this.renderer) { // Ensure objects are initialized
+        this.controls.update();
         this.renderer.render(this.scene, this.camera);
     }
   }

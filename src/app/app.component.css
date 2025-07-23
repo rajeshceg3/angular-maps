@@ -1,24 +1,14 @@
-p {
-  font-family: Lato;
-}
-
-/* Ensure the root Angular component and HTML/body take full height */
-:host {
-  display: block;
+.container {
+  display: flex;
   height: 100vh;
-  width: 100vw;
-  overflow: hidden; /* Prevent scrollbars on the body */
 }
 
-/* Make app-gmap and app-map stack vertically, each taking 50% of the host's height */
-app-gmap, app-map {
-  display: block; /* Or flex, grid item depending on desired layout */
-  width: 100%;
-  height: 50vh; /* 50% of the viewport height */
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+.map-container {
+  width: 50%;
+  height: 100%;
 }
 
-/* Optional: Add a border to easily distinguish them */
-app-gmap {
-  border-bottom: 1px solid #ccc;
+.scene-container {
+  width: 50%;
+  height: 100%;
 }
