@@ -10,7 +10,11 @@ import { GMapComponent } from './gmap/gmap.component';
 import { HttpClientModule} from '@angular/common/http';
 
 @NgModule({
-  imports:      [ BrowserModule, FormsModule, HttpClientModule, AgmCoreModule.forRoot({ apiKey: 'YOUR_PLACEHOLDER_API_KEY' }) ],
+  imports:      [ BrowserModule, FormsModule, HttpClientModule, AgmCoreModule.forRoot({
+    // !! IMPORTANT !!
+    // Replace 'YOUR_PLACEHOLDER_API_KEY' with your actual Google Maps API key.
+    apiKey: 'YOUR_PLACEHOLDER_API_KEY'
+  }) ],
   declarations: [ AppComponent, HelloComponent, MapComponent,GMapComponent],
   bootstrap:    [ AppComponent ]
 })
